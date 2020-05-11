@@ -40,13 +40,23 @@ public class MenuController {
 	
 	private void callSolver() 
 	{
-		String result = solver.Solve(ruleArea.getText(), memoryArea.getText());
-		memoryArea.setText(result);
+		solver.SolveOneStep(ruleArea.getText(), memoryArea.getText(),this);
+		//memoryArea.setText(result);
+	}
+	
+	public void setMemoryText(String text)
+	{
+		memoryArea.setText(text);
+	}
+	
+	public void setRulesText(String text)
+	{
+		ruleArea.setText(text);
 	}
 	
 	private void callNextStep()
 	{
-		//TODO next step function
 		System.out.println("Next Step called");
+		solver.SolveOneStep(ruleArea.getText(), memoryArea.getText(),this);
 	}
 }
