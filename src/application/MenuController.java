@@ -40,7 +40,7 @@ public class MenuController {
 	
 	private void callSolver() 
 	{
-		solver.SolveOneStep(ruleArea.getText(), memoryArea.getText(), messageArea.getText(),this);
+		solver.SolveOneStep(ruleArea.getText(), memoryArea.getText(), messageArea.getText(), helperArea.getText(),this);
 		//memoryArea.setText(result);
 	}
 	
@@ -68,6 +68,6 @@ public class MenuController {
 	private void callNextStep()
 	{
 		System.out.println("Next Step called");
-		solver.SolveOneStep(ruleArea.getText(), memoryArea.getText(), messageArea.getText(), this);
+		solver.SolveOneStep(ruleArea.getText(), memoryArea.getText(), messageArea.getText(), helperArea.getText(),this);
 	}
 }

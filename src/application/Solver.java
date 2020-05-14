@@ -36,9 +36,13 @@ public class Solver {
 	//Obsahuje vsetky specialne poznatky
 	private List<List<String>> specialConditions = new ArrayList<List<String>>();
 	
+	//Obsahuje vysledok prikazu sprava
 	private List<String> messageList = new ArrayList<String>();
 	
-	public void SolveOneStep(String rulesRawText, String memoryText, String message, MenuController con) 
+	//Obsahuje udaje z pomocnej pamati tj veci, ktore sa este len idu pridat do pamati
+	private List<String> helperList = new ArrayList<String>();
+	/*
+	public void makeOneStep(String rulesRawText, String memoryText, String messageText, String helperText, MenuController con) 
 	{
 		memoryTextList = new ArrayList<String>();
 		
@@ -47,9 +51,75 @@ public class Solver {
 			//Rozdelenie pamati na jednotlive informacie
 			memoryTextList = new LinkedList<String>(Arrays.asList(memoryText.split("\n")));
 		}
-		if(!message.isEmpty()) {
+		if(!messageText.isEmpty()) {
+			messageList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
+		}
+		
+		if(!helperText.isEmpty()) {
+			helperList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
+		}
+		
+		//Rozdelime text na jednotlive pravidla
+		List<String> ruleRawTextList = Arrays.asList(rulesRawText.split("\n\n"));
+		System.out.println("Rule count "+ruleRawTextList.size());	
+		
+		//Vyprazdnenie premennych 
+		nameOfRule = new ArrayList<String>();
+		action = new ArrayList<String>();
+		memoryAdding = new ArrayList<String>();
+		permutationResult = new ArrayList<List<String>>();
+		specialConditions = new ArrayList<List<String>>();
+		
+		StringBuilder memoryBuilder = new StringBuilder();
+		//Vypis pamate
+		for(String text : memoryTextList) {
+			//System.out.println("!! "+text);
+			memoryBuilder.append(text+"\n");
+		}
+		
+		String addingText = memoryAdding.get(0);
+		memoryAdding.remove(0);
+		
+		//Vypis pamate
+		for(String text : memoryAdding) {
+			//System.out.println("++ "+text);
+			memoryBuilder.append(text+"\n");
+		}		
+		
+		StringBuilder messageBuilder = new StringBuilder();
+		//Vypis pamate
+		for(String text : messageList) {
+			//System.out.println("// "+text);
+			messageBuilder.append(text+"\n");
+		}	
+		
+		StringBuilder helperBuilder = new StringBuilder();
+		//Vypis pamate
+		for(String text : helperList) {
+			//System.out.println("// "+text);
+			helperBuilder.append(text+"\n");
+		}	
+		
+		con.setMemoryText(memoryBuilder.toString());		
+		con.setMessageText(messageBuilder.toString());
+		con.setHelperText(helperBuilder.toString());
+	}
+	*/
+	public void SolveOneStep(String rulesRawText, String memoryText, String messageText, String helperText, MenuController con) 
+	{
+		memoryTextList = new ArrayList<String>();
+		
+		//Kontrola prazdnej pamati - mozno zle ak su tam otazky na opytanie
+		if(!memoryText.isEmpty()) {
 			//Rozdelenie pamati na jednotlive informacie
-			messageList = new LinkedList<String>(Arrays.asList(message.split("\n")));
+			memoryTextList = new LinkedList<String>(Arrays.asList(memoryText.split("\n")));
+		}
+		if(!messageText.isEmpty()) {
+			messageList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
+		}
+		
+		if(!helperText.isEmpty()) {
+			helperList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
 		}
 		
 		//Rozdelime text na jednotlive pravidla
@@ -139,9 +209,16 @@ public class Solver {
 			messageBuilder.append(text+"\n");
 		}	
 		
+		/*StringBuilder helperBuilder = new StringBuilder();
+		//Vypis pamate
+		for(String text : helperList) {
+			//System.out.println("// "+text);
+			helperBuilder.append(text+"\n");
+		}	*/
+		
 		con.setMemoryText(memoryBuilder.toString());		
 		con.setMessageText(messageBuilder.toString());
-		
+		//con.setHelperText(helperBuilder.toString());
 
 	}
 	
@@ -262,6 +339,7 @@ public class Solver {
 					character++;
 				}
 				
+				helperList.add(nameOfRule.get(index)+" "+addingRule);
 				processCommand(addingRule);
 
 			}
@@ -366,8 +444,7 @@ public class Solver {
 	
 		return returnList;
 	}
-		
-	
+			
 	//Vymaze medzery pred a po stringu
 	private String removeEdgeSpaces(String ruleRegexed)
 	{
