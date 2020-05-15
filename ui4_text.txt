@@ -1,0 +1,31 @@
+Druhyrodič1
+?X je rodič ?Y,manželia ?X ?Z
+pridaj ?Z je rodič ?Y
+
+Druhyrodič2
+?X je rodič ?Y,manželia ?Z ?X
+pridaj ?Z je rodič ?Y
+
+Otec
+?X je rodič ?Y,muž ?X
+pridaj ?X je otec ?Y
+
+Matka
+?X je rodič ?Y,žena ?X
+pridaj ?X je matka ?Y
+
+Surodenci
+?X je rodič ?Y,?X je rodič ?Z,<> ?Y ?Z
+pridaj ?Y ?Z su surodenci
+
+Brat
+?Y ?Z su surodenci,muž ?Y
+pridaj ?Y je brat ?Z
+
+Stryko
+?Y je brat ?Z,?Z je rodič ?X
+pridaj ?Y je stryko ?X,sprava ?X ma stryka
+
+Mazanie
+?Y je stryko ?X,žena ?X
+vymaz žena ?X

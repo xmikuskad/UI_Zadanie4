@@ -13,6 +13,7 @@ public class Solver {
 	private final String MESSAGE = "sprava";
 	
 	//nameOfRule a action vratia meno a akciu daneho pravidla;
+	//mena musia byt bez medzery!
 	private List<String> nameOfRule = new ArrayList<String>();
 	private List<String> action = new ArrayList<String>();
 	
@@ -41,7 +42,8 @@ public class Solver {
 	
 	//Obsahuje udaje z pomocnej pamati tj veci, ktore sa este len idu pridat do pamati
 	private List<String> helperList = new ArrayList<String>();
-	/*
+	
+	//Toto sa vykona pri jednom kliku na tlacidlo Next Step
 	public void makeOneStep(String rulesRawText, String memoryText, String messageText, String helperText, MenuController con) 
 	{
 		memoryTextList = new ArrayList<String>();
@@ -56,8 +58,9 @@ public class Solver {
 		}
 		
 		if(!helperText.isEmpty()) {
-			helperList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
+			helperList = new LinkedList<String>(Arrays.asList(helperText.split("\n")));
 		}
+		
 		
 		//Rozdelime text na jednotlive pravidla
 		List<String> ruleRawTextList = Arrays.asList(rulesRawText.split("\n\n"));
@@ -70,24 +73,22 @@ public class Solver {
 		permutationResult = new ArrayList<List<String>>();
 		specialConditions = new ArrayList<List<String>>();
 		
+		//Pridanie novej veci
+		if(helperList.size() > 0) {
+			processCommand(helperList.get(0).split(" ",2)[1]);
+			helperList.remove(0);
+		}
+		
+		solveIt(ruleRawTextList);
+		
 		StringBuilder memoryBuilder = new StringBuilder();
 		//Vypis pamate
 		for(String text : memoryTextList) {
 			//System.out.println("!! "+text);
 			memoryBuilder.append(text+"\n");
-		}
-		
-		String addingText = memoryAdding.get(0);
-		memoryAdding.remove(0);
-		
-		//Vypis pamate
-		for(String text : memoryAdding) {
-			//System.out.println("++ "+text);
-			memoryBuilder.append(text+"\n");
-		}		
+		}				
 		
 		StringBuilder messageBuilder = new StringBuilder();
-		//Vypis pamate
 		for(String text : messageList) {
 			//System.out.println("// "+text);
 			messageBuilder.append(text+"\n");
@@ -100,47 +101,111 @@ public class Solver {
 			helperBuilder.append(text+"\n");
 		}	
 		
+		for(String text : memoryAdding) {
+			//System.out.println("++ "+text);
+			if (!contains(helperList,text))
+				helperBuilder.append(text+"\n");
+		}			
+		
 		con.setMemoryText(memoryBuilder.toString());		
 		con.setMessageText(messageBuilder.toString());
 		con.setHelperText(helperBuilder.toString());
 	}
-	*/
-	public void SolveOneStep(String rulesRawText, String memoryText, String messageText, String helperText, MenuController con) 
+	
+	//Toto sa vykona pri jednom kliku na tlacidlo Solve
+	public void solveItAll(MenuController con, boolean solveOnce) 
 	{
-		memoryTextList = new ArrayList<String>();
-		
-		//Kontrola prazdnej pamati - mozno zle ak su tam otazky na opytanie
-		if(!memoryText.isEmpty()) {
-			//Rozdelenie pamati na jednotlive informacie
-			memoryTextList = new LinkedList<String>(Arrays.asList(memoryText.split("\n")));
+		while(true) {
+			String rulesRawText = con.getRulesText(); 
+			String memoryText = con.getMemoryText();
+			String messageText = con.getMessageText();
+			String helperText = con.getHelperText();
+			memoryTextList = new ArrayList<String>();
+			int memoryTextCount;
+			
+			//Kontrola prazdnej pamati - mozno zle ak su tam otazky na opytanie
+			if(!memoryText.isEmpty()) {
+				//Rozdelenie pamati na jednotlive informacie
+				memoryTextList = new LinkedList<String>(Arrays.asList(memoryText.split("\n")));
+			}
+			if(!messageText.isEmpty()) {
+				messageList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
+			}
+			
+			if(!helperText.isEmpty()) {
+				helperList = new LinkedList<String>(Arrays.asList(helperText.split("\n")));
+			}
+			
+			memoryTextCount = memoryTextList.size();
+			
+			//Rozdelime text na jednotlive pravidla
+			List<String> ruleRawTextList = Arrays.asList(rulesRawText.split("\n\n"));
+			System.out.println("Rule count "+ruleRawTextList.size());	
+			
+			//Vyprazdnenie premennych 
+			nameOfRule = new ArrayList<String>();
+			action = new ArrayList<String>();
+			memoryAdding = new ArrayList<String>();
+			permutationResult = new ArrayList<List<String>>();
+			specialConditions = new ArrayList<List<String>>();
+			
+			//Pridanie novej veci
+			if(helperList.size() > 0) {
+				processCommand(helperList.get(0).split(" ",2)[1]);
+				helperList.remove(0);
+			}
+			
+			solveIt(ruleRawTextList);
+			
+			StringBuilder memoryBuilder = new StringBuilder();
+			//Vypis pamate
+			for(String text : memoryTextList) {
+				//System.out.println("!! "+text);
+				memoryBuilder.append(text+"\n");
+			}				
+			
+			StringBuilder messageBuilder = new StringBuilder();
+			for(String text : messageList) {
+				//System.out.println("// "+text);
+				messageBuilder.append(text+"\n");
+			}	
+			
+			StringBuilder helperBuilder = new StringBuilder();
+			//Vypis pamate
+			for(String text : helperList) {
+				//System.out.println("// "+text);
+				helperBuilder.append(text+"\n");
+			}	
+			
+			for(String text : memoryAdding) {
+				//System.out.println("++ "+text);
+				if (!contains(helperList,text))
+					helperBuilder.append(text+"\n");
+			}			
+			
+			con.setMemoryText(memoryBuilder.toString());		
+			con.setMessageText(messageBuilder.toString());
+			con.setHelperText(helperBuilder.toString());
+			
+			if(solveOnce || (con.getHelperText().length() <=0 && memoryTextCount == memoryTextList.size()))
+			{
+				//Neprislo nam ziadne nove pravidlo
+				break;
+			}
 		}
-		if(!messageText.isEmpty()) {
-			messageList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
-		}
-		
-		if(!helperText.isEmpty()) {
-			helperList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
-		}
-		
-		//Rozdelime text na jednotlive pravidla
-		List<String> ruleRawTextList = Arrays.asList(rulesRawText.split("\n\n"));
-		System.out.println("Rule count "+ruleRawTextList.size());	
-		
-		//Vyprazdnenie premennych 
-		nameOfRule = new ArrayList<String>();
-		action = new ArrayList<String>();
-		memoryAdding = new ArrayList<String>();
-		permutationResult = new ArrayList<List<String>>();
-		specialConditions = new ArrayList<List<String>>();
-		
+	}
+	
+	
+	public void solveIt(List<String> ruleRawTextList) 
+	{
 		//Pre kazde pravidlo z pravidiel
 		for(int j=0;j<ruleRawTextList.size();j++) {			
-			//System.out.println("\n\nCHECKING NEW RULE");
+			if(ruleRawTextList.size() <3)  continue;
+			
 			conditionsWithoutNames = new ArrayList<String>();
 			conditionsWithNames= new ArrayList<List<List<String>>>();
 			specialConditions.add(new ArrayList<String>());		
-			
-			
+					
 			//Toto obsahuje jedno konkretne pravidlo
 			//0 obsahuje meno, 1 pravidla, 2 akcie
 			List<String> ruleRawText = Arrays.asList(ruleRawTextList.get(j).split("\n"));
@@ -149,80 +214,22 @@ public class Solver {
 			nameOfRule.add(ruleRawText.get(0));
 			action.add(ruleRawText.get(2));
 			
-			//System.out.println("Meno "+ruleRawText.get(0));
-			//System.out.println("Pravidla "+ruleRawText.get(1));
+
 			List<String> conditionsList = Arrays.asList(ruleRawText.get(1).split(","));
 		
 			//Toto vytvori conditionsWithoutNames a conditionsWithNames
-			processConditions(memoryTextList,conditionsList,j);
-									
-			//Vypis cistych premennych
-			/*for(String text3 : conditionsWithoutNames) {
-					System.out.println("NO NAME: |"+text3+"|");
-			}*/
-			
-			//Vypis cistych mien
-			/*for(List<List<String>> text4 : conditionsWithNames) {
-				System.out.println("NEW CONDITION");
-				for(List<String> text5: text4) {
-					System.out.println("New record");
-					for(String text7: text5)
-					System.out.println("NAME: |"+text7+"|");
-				}
-			}*/
-			
+			processConditions(conditionsList,j);
+											
 			permutationResult = new ArrayList<List<String>>();
 			createPermutations(0,new ArrayList<String>());
-			
-			//Vypis permutacii
-			/*for(List<String> text8 : permutationResult) {
-				System.out.println("\nNEW COMBINATION");
-				for(String text9 : text8)
-					System.out.println("COMB: |"+text9+"|");
-			}*/
-			
-			//System.out.println("Akcie "+ruleRawText.get(2));
 			
 			checkPermutations(j);
 			
 		}
-		
-		//memoryTextList.addAll(memoryAdding);
-		
-		StringBuilder memoryBuilder = new StringBuilder();
-		//Vypis pamate
-		for(String text : memoryTextList) {
-			//System.out.println("!! "+text);
-			memoryBuilder.append(text+"\n");
-		}
-		
-		//Vypis pamate
-		for(String text : memoryAdding) {
-			//System.out.println("++ "+text);
-			memoryBuilder.append(text+"\n");
-		}		
-		
-		StringBuilder messageBuilder = new StringBuilder();
-		//Vypis pamate
-		for(String text : messageList) {
-			//System.out.println("// "+text);
-			messageBuilder.append(text+"\n");
-		}	
-		
-		/*StringBuilder helperBuilder = new StringBuilder();
-		//Vypis pamate
-		for(String text : helperList) {
-			//System.out.println("// "+text);
-			helperBuilder.append(text+"\n");
-		}	*/
-		
-		con.setMemoryText(memoryBuilder.toString());		
-		con.setMessageText(messageBuilder.toString());
-		//con.setHelperText(helperBuilder.toString());
 
 	}
 	
-	private void processConditions(List<String> memoryTextList, List<String> conditionsList, int index) 
+	private void processConditions(List<String> conditionsList, int index) 
 	{	
 		for(int i =0; i<conditionsList.size(); i++) {			
 			String condition = conditionsList.get(i);
@@ -293,6 +300,7 @@ public class Solver {
 			List<String> permutation = permutationResult.get(j);
 			HashMap<String, String> nameVariables = new HashMap<String, String>();
 			boolean adding = true;
+			
 			//Overenie danej permutacie
 			for(int i=0; i<permutation.size();i++) {
 				String get = nameVariables.get(conditionsWithoutNames.get(i));
@@ -300,7 +308,6 @@ public class Solver {
 					nameVariables.put(conditionsWithoutNames.get(i), permutation.get(i));
 				}
 				else if (!get.equals(permutation.get(i))) {
-					//System.out.println("Permutation wrong");
 					adding = false;
 					break;
 				}
@@ -313,8 +320,8 @@ public class Solver {
 					specialConditionsEdit.set(i,nameVariables.get(specialConditionsEdit.get(i)));
 					
 				}
-				//System.out.println("SIZE "+specialConditionsEdit.size());
-				//Kontrola duplikacii
+				
+				//Kontrola duplikacii v ramci <>
 				for(int m=0;m<specialConditionsEdit.size();m++) {
 					for(int n=m+1;n<specialConditionsEdit.size();n++) {
 						if(specialConditionsEdit.get(m).equals(specialConditionsEdit.get(n))) {
@@ -326,7 +333,6 @@ public class Solver {
 			
 			
 			if(adding) {
-				//System.out.println("Adding "+nameOfRule.get(index));
 				String addingRule = action.get(index);
 				
 				//Dosadzovanie premennych
@@ -339,9 +345,10 @@ public class Solver {
 					character++;
 				}
 				
-				helperList.add(nameOfRule.get(index)+" "+addingRule);
-				processCommand(addingRule);
-
+				if(checkCommand(addingRule)) {				
+					memoryAdding.add(nameOfRule.get(index)+" "+addingRule);
+					System.out.println("ADDING");
+				}
 			}
 		}
 		
@@ -349,6 +356,7 @@ public class Solver {
 	
 	private void processCommand(String addingRule)
 	{
+		System.out.println(addingRule);
 		List<String> actionList = new ArrayList<String>();
 		if(addingRule.contains(",")) {
 			actionList = Arrays.asList(addingRule.split(","));
@@ -357,9 +365,13 @@ public class Solver {
 		}
 		
 		for(String rule: actionList) {
+			System.out.println(rule);
 			String[] tmp = rule.split(" ",2);
 			String command = tmp[0];
 			String other = tmp[1];
+			
+			System.out.println("0 "+tmp[0]);
+			System.out.println("1 "+tmp[1]);
 			
 			//TODO dokoncit aj ostatne moznosti
 			if(command.equals(ADD)) {
@@ -371,7 +383,8 @@ public class Solver {
 				}
 				
 				if(!exists)
-					memoryAdding.add(other);
+					//memoryAdding.add(tmp[0]+other);
+					memoryTextList.add(other);
 			}
 			else if(command.equals(DELETE)) {
 				for(int i=0;i<memoryTextList.size();i++) {
@@ -393,6 +406,59 @@ public class Solver {
 					messageList.add(other);
 			}
 		}
+		
+	}
+	
+	private boolean checkCommand(String addingRule)
+	{
+		boolean validCommand = false;
+		List<String> actionList = new ArrayList<String>();
+		if(addingRule.contains(",")) {
+			actionList = Arrays.asList(addingRule.split(","));
+		}else {
+			actionList.add(addingRule);
+		}
+		
+		for(String rule: actionList) {
+			System.out.println(rule);
+			String[] tmp = rule.split(" ",2);
+			String command = tmp[0];
+			String other = tmp[1];
+			
+			//TODO dokoncit aj ostatne moznosti
+			if(command.equals(ADD)) {
+				boolean exists = false;
+				
+				for(String text:memoryTextList) {
+					if(text.equals(other))
+						exists=true;
+				}
+				
+				if(!exists) {
+					validCommand = true;
+				}
+			}
+			else if(command.equals(DELETE)) {
+				for(int i=0;i<memoryTextList.size();i++) {
+					if(memoryTextList.get(i).equals(other)) {
+						validCommand = true;
+					}
+				}
+			}
+			else if(command.equals(MESSAGE)) {
+				boolean exists = false;
+				
+				for(String text:messageList) {
+					if(text.equals(other))
+						exists=true;
+				}
+				
+				if(!exists)
+					validCommand = true;
+			}
+		}
+		
+		return validCommand;
 		
 	}
 	
@@ -420,7 +486,7 @@ public class Solver {
 			return false;
 	}
 	
-	//TODO mozno je to mazanie medzier zbytocne :/
+	//TODO mozno je to mazanie medzier zbytocne
 	private List<String> stripName(String variable) {
 		List<String> returnList = new ArrayList<String>();
 		
@@ -459,5 +525,14 @@ public class Solver {
 		return ruleRegexed;
 	}
 	
+	private boolean contains(List<String> list, String var)
+	{
+		for(String text:list)
+		{
+			if(text.equals(var))
+				return true;
+		}
+		return false;
+	}
 	
 }
