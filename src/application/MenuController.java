@@ -78,6 +78,8 @@ public class MenuController {
 	private void callSolver() 
 	{
 		solver = new Solver();
+		setMessageText("");
+		setHelperText("");
 		solver.solveItAll(this,false);
 	}
 	

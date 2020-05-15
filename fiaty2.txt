@@ -1,0 +1,68 @@
+FIAT1
+start
+otazka Aký typ karosérie sa vám páči: sedan hatchback -karoseria !,vymaz start
+
+FIAT2
+karoseria sedan
+otazka Požadujete počet dverí: 4 5 - sedan !
+
+FIAT3
+sedan 5
+pridaj vybrany Fiat Croma,sprava Fiat Croma
+
+FIAT4
+sedan 4
+otazka Ktorá náprava by mala byť poháňaná: predná zadná - naprava !
+
+FIAT5
+naprava predná
+pridaj vybrany Fiat Tempra,sprava Fiat Tempra
+
+FIAT6
+naprava zadná
+pridaj vybrany Fiat Mirafiorri,sprava Fiat Mirafiorri
+
+FIAT7
+karoseria hatchback
+otazka Požadujete počet dverí: 3 5 -hatchback !
+
+FIAT8
+hatchback 3
+otazka Otvorená predná maska: áno nie mriežka-3 maska !
+
+FIAT9
+3 maska áno
+pridaj vybrany Fiat Tipo3,sprava Fiat Tipo3
+
+FIAT10
+3 maska nie
+pridaj vybrany Fiat Punto3,sprava Fiat Punto3
+
+FIAT11
+3 maska mriežka
+pridaj vybrany Fiat Panda3,sprava Fiat Panda3
+
+FIAT12
+hatchback 5
+otazka Otvorená predná maska: áno nie mriežka - 5 maska !
+
+FIAT13
+5 maska áno
+pridaj vybrany Fiat Tipo5,sprava Fiat Tipo5
+
+FIAT14
+5 maska nie
+pridaj vybrany Fiat Punto5,sprava Fiat Punto5
+
+FIAT15
+5 maska mriežka
+otazka Aký tvar svetiel sa vám páči: okrúhle integrované - ! svetla
+
+FIAT16
+integrované svetla
+pridaj vybrany Fiat Uno5,sprava Fiat Uno5
+
+FIAT17
+okrúhle svetla
+pridaj vybrany Fiat Ritmo5,sprava Fiat Ritmo5
+

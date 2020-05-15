@@ -29,3 +29,15 @@ pridaj ?Y je stryko ?X,sprava ?X ma stryka
 Mazanie
 ?Y je stryko ?X,žena ?X
 vymaz žena ?X
+
+otazka_meno
+start
+otazka Ako sa volas : Dominik Andrej Ivan Miroslav- meno !,vymaz start
+
+chlap_zistenie
+meno ?X
+otazka Ake si pohlavie: žena muž -! ?X
+
+muz_vypis
+muž ?X
+sprava ?X je muž !!

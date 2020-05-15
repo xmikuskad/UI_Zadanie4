@@ -1,16 +1,33 @@
 package application;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+
 public class Solver {
 
 	private final String ADD = "pridaj";
 	private final String DELETE = "vymaz";
 	private final String MESSAGE = "sprava";
+	private final String QUESTION = "otazka";
 	
 	//nameOfRule a action vratia meno a akciu daneho pravidla;
 	//mena musia byt bez medzery!
@@ -43,79 +60,15 @@ public class Solver {
 	//Obsahuje udaje z pomocnej pamati tj veci, ktore sa este len idu pridat do pamati
 	private List<String> helperList = new ArrayList<String>();
 	
-	//Toto sa vykona pri jednom kliku na tlacidlo Next Step
-	public void makeOneStep(String rulesRawText, String memoryText, String messageText, String helperText, MenuController con) 
-	{
-		memoryTextList = new ArrayList<String>();
-		
-		//Kontrola prazdnej pamati - mozno zle ak su tam otazky na opytanie
-		if(!memoryText.isEmpty()) {
-			//Rozdelenie pamati na jednotlive informacie
-			memoryTextList = new LinkedList<String>(Arrays.asList(memoryText.split("\n")));
-		}
-		if(!messageText.isEmpty()) {
-			messageList = new LinkedList<String>(Arrays.asList(messageText.split("\n")));
-		}
-		
-		if(!helperText.isEmpty()) {
-			helperList = new LinkedList<String>(Arrays.asList(helperText.split("\n")));
-		}
-		
-		
-		//Rozdelime text na jednotlive pravidla
-		List<String> ruleRawTextList = Arrays.asList(rulesRawText.split("\n\n"));
-		System.out.println("Rule count "+ruleRawTextList.size());	
-		
-		//Vyprazdnenie premennych 
-		nameOfRule = new ArrayList<String>();
-		action = new ArrayList<String>();
-		memoryAdding = new ArrayList<String>();
-		permutationResult = new ArrayList<List<String>>();
-		specialConditions = new ArrayList<List<String>>();
-		
-		//Pridanie novej veci
-		if(helperList.size() > 0) {
-			processCommand(helperList.get(0).split(" ",2)[1]);
-			helperList.remove(0);
-		}
-		
-		solveIt(ruleRawTextList);
-		
-		StringBuilder memoryBuilder = new StringBuilder();
-		//Vypis pamate
-		for(String text : memoryTextList) {
-			//System.out.println("!! "+text);
-			memoryBuilder.append(text+"\n");
-		}				
-		
-		StringBuilder messageBuilder = new StringBuilder();
-		for(String text : messageList) {
-			//System.out.println("// "+text);
-			messageBuilder.append(text+"\n");
-		}	
-		
-		StringBuilder helperBuilder = new StringBuilder();
-		//Vypis pamate
-		for(String text : helperList) {
-			//System.out.println("// "+text);
-			helperBuilder.append(text+"\n");
-		}	
-		
-		for(String text : memoryAdding) {
-			//System.out.println("++ "+text);
-			if (!contains(helperList,text))
-				helperBuilder.append(text+"\n");
-		}			
-		
-		con.setMemoryText(memoryBuilder.toString());		
-		con.setMessageText(messageBuilder.toString());
-		con.setHelperText(helperBuilder.toString());
-	}
-	
-	//Toto sa vykona pri jednom kliku na tlacidlo Solve
+	MenuController menuCon;
+	boolean askedQuestion = false;
+
+	//Toto sa vykona pri jednom kliku na tlacidlo. solveOnce je true ak vykona iba jeden krok
 	public void solveItAll(MenuController con, boolean solveOnce) 
 	{
+		menuCon = con;
 		while(true) {
+			askedQuestion = false;
 			String rulesRawText = con.getRulesText(); 
 			String memoryText = con.getMemoryText();
 			String messageText = con.getMessageText();
@@ -152,10 +105,16 @@ public class Solver {
 			//Pridanie novej veci
 			if(helperList.size() > 0) {
 				processCommand(helperList.get(0).split(" ",2)[1]);
+				System.out.println("CALLED "+helperList.get(0).split(" ",2)[1]);
 				helperList.remove(0);
 			}
 			
-			solveIt(ruleRawTextList);
+			try {
+				solveIt(ruleRawTextList);
+			} catch (Exception e) {
+				con.setMessageText("BAD RULES FORMATTING!");
+				return;
+			}
 			
 			StringBuilder memoryBuilder = new StringBuilder();
 			//Vypis pamate
@@ -187,20 +146,19 @@ public class Solver {
 			con.setMessageText(messageBuilder.toString());
 			con.setHelperText(helperBuilder.toString());
 			
-			if(solveOnce || (con.getHelperText().length() <=0 && memoryTextCount == memoryTextList.size()))
+			if(solveOnce || askedQuestion || (con.getHelperText().length() <=0 && memoryTextCount == memoryTextList.size()))
 			{
 				//Neprislo nam ziadne nove pravidlo
 				break;
 			}
 		}
 	}
-	
-	
+		
 	public void solveIt(List<String> ruleRawTextList) 
 	{
 		//Pre kazde pravidlo z pravidiel
-		for(int j=0;j<ruleRawTextList.size();j++) {			
-			if(ruleRawTextList.size() <3)  continue;
+		for(int j=0;j<ruleRawTextList.size();j++) {		
+			if(ruleRawTextList.get(j).length() == 0)  continue;
 			
 			conditionsWithoutNames = new ArrayList<String>();
 			conditionsWithNames= new ArrayList<List<List<String>>>();
@@ -240,11 +198,12 @@ public class Solver {
 				conditionsWithoutNames.add(condition);
 				conditionsWithNames.add(new ArrayList<List<String>>());
 				for(String memoryString:memoryTextList) {
-					if(isSubstring(condition,memoryString))
+					if(isSubstring(condition,memoryString) || condition.equals(memoryString))
 					{
 						List<String> conditionList = new ArrayList<String>();
 						conditionList.add(condition);
 						conditionsWithNames.get(i).add(conditionList);
+						System.out.println("NO ? FOUND");
 					}
 				}	
 				continue;
@@ -253,7 +212,6 @@ public class Solver {
 			String conditionRegexed = condition.replaceAll("[?]{1}[A-Z]{1}","");
 						
 			conditionRegexed = removeEdgeSpaces(conditionRegexed);
-			//System.out.println("RULE: |"+conditionRegexed+"|");
 			
 			//Specialne pre <>
 			if(conditionRegexed.equals("<>"))
@@ -356,7 +314,7 @@ public class Solver {
 	
 	private void processCommand(String addingRule)
 	{
-		System.out.println(addingRule);
+		System.out.println("ADDING RULE: "+addingRule);
 		List<String> actionList = new ArrayList<String>();
 		if(addingRule.contains(",")) {
 			actionList = Arrays.asList(addingRule.split(","));
@@ -365,7 +323,7 @@ public class Solver {
 		}
 		
 		for(String rule: actionList) {
-			System.out.println(rule);
+			System.out.println("RULE"+rule);
 			String[] tmp = rule.split(" ",2);
 			String command = tmp[0];
 			String other = tmp[1];
@@ -404,6 +362,40 @@ public class Solver {
 				
 				if(!exists)
 					messageList.add(other);
+			}
+			else if(command.equals(QUESTION)) {
+				System.out.println("Otazka!");
+				boolean exists = false;
+				String[] tmp2 = other.split("-",2);
+				String action = removeEdgeSpaces(tmp2[1]);
+				String question = tmp2[0];
+				
+				String rawAction = action.replaceAll("!", "");
+				rawAction = removeEdgeSpaces(rawAction);
+				
+				String[] tmp3 = question.split(":",2);
+				String questionAsk = removeEdgeSpaces(tmp3[0]);
+				String[] questionOpt = removeEdgeSpaces(tmp3[1]).split(" ");
+				
+				for(String opt:questionOpt) {
+					String actionTest = action.replaceAll("!", opt);
+					for(String text:memoryTextList) {
+						if(text.equals(actionTest)) {
+							exists = true;
+							System.out.println("EQ: "+text+"| "+actionTest);
+						}
+					}
+				}
+				if(!exists) {
+					System.out.println("Found question!");
+					System.out.println("Question "+questionAsk+"\nOptions: ");
+					for(String text:questionOpt) {
+						System.out.println(text);
+					}
+					askedQuestion = true;
+					askQuestion(questionAsk,questionOpt,action);
+				}
+				
 			}
 		}
 		
@@ -456,6 +448,32 @@ public class Solver {
 				if(!exists)
 					validCommand = true;
 			}
+			else if(command.equals(QUESTION)) {
+				System.out.println("Otazka!");
+				boolean exists = false;
+				String[] tmp2 = other.split("-",2);
+				String action = removeEdgeSpaces(tmp2[1]);
+				String question = tmp2[0];
+				
+				String rawAction = action.replaceAll("!", "");
+				rawAction = removeEdgeSpaces(rawAction);
+				
+				String[] tmp3 = question.split(":",2);
+				String questionAsk = removeEdgeSpaces(tmp3[0]);
+				String[] questionOpt = removeEdgeSpaces(tmp3[1]).split(" ");
+				
+				for(String opt:questionOpt) {
+					String actionTest = action.replaceAll("!", opt);
+					for(String text:memoryTextList) {
+						if(text.equals(actionTest)) {
+							exists = true;
+						}
+					}
+				}
+				if(!exists) {
+					validCommand = true;				
+				}
+			}
 		}
 		
 		return validCommand;
@@ -465,8 +483,10 @@ public class Solver {
 	private void createPermutations(int i, List<String> list)
 	{
 		if(conditionsWithNames.size() <= i) {
-			if(list.size() > 0)
+			if(list.size() > 0) {
 				permutationResult.add(list);
+				System.out.println("ADDED PERM "+list);
+			}
 			return;
 		}
 		
@@ -535,4 +555,72 @@ public class Solver {
 		return false;
 	}
 	
+	private void askQuestion(String questionName,String[] options,String action)
+	{
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("QuestionPopup.fxml"));	
+			QuestionShowController con = new QuestionShowController();
+			loader.setController(con);
+			VBox root = (VBox) loader.load();
+			Scene scene = new Scene(root);		
+			Stage stage = new Stage();
+			
+			stage.setScene(scene);
+			stage.setResizable(false);
+			stage.setTitle("Otazka");
+			
+			//Nastavuje prioritu. Neda sa vratit naspat dokial nezavru toto okno
+			stage.initModality(Modality.APPLICATION_MODAL); 			
+			stage.show();	
+			
+			con.setQuestion(questionName,options,action,stage,menuCon,this);
+				
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+}
+
+//Toto je controller pre edit menu
+class QuestionShowController
+{
+	@FXML MenuButton dropdown;
+	@FXML Button saveBtn;
+	@FXML Label questionLabel;
+	
+	public void setQuestion(String questionName,String[] options,String action,Stage stage, MenuController con, Solver solver) {
+		questionLabel.setWrapText(true);
+		questionLabel.setText(questionName);
+		
+		dropdown.setText("Choose one!");
+		dropdown.getItems().clear();
+		
+		List<String> adding = new LinkedList<String>();
+		
+		if(options.length > 0) {
+			for (String opt : options) {
+				CheckBox cb0 = new CheckBox(opt);  
+				cb0.setUserData(opt);
+				CustomMenuItem item0 = new CustomMenuItem(cb0); 
+				item0.setHideOnClick(false);  
+				dropdown.getItems().add(item0);
+				cb0.setSelected(false);
+			}
+		}
+		
+		saveBtn.setOnAction(e-> {		
+			for (MenuItem custom : dropdown.getItems()) {
+				CheckBox item = (CheckBox)((CustomMenuItem)custom).getContent();
+				if(item.isSelected()) {
+					String gotItem = (String)item.getUserData();
+					con.setMemoryText(con.getMemoryText()+action.replaceAll("!", gotItem)+"\n");
+				}
+			}	
+			solver.solveItAll(con, false);
+			stage.close();
+		});
+	}
+
 }
